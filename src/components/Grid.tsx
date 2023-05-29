@@ -9,7 +9,7 @@ import {
 } from "@progress/kendo-react-grid";
 import { Button } from "@progress/kendo-react-buttons";
 import { CellRender, RowRender } from "./Renderer";
-import { IBulkUserGrid } from "./BulkUserGrid";
+import { IBulkUserGrid } from "./interface";
 import { GridColumnType, useBulkUserGridContext } from "../context";
 import { generateDummyData } from "../utils";
 

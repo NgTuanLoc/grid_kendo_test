@@ -20,16 +20,6 @@ export type GridColumnType =
     | "localAccount"
     | "hierarchy"
     | "roles";
-// export type GridColumnType =
-//     | "id"
-//     | "email"
-//     | "displayName"
-//     | "firstName"
-//     | "lastName"
-//     | "licensedSolutions"
-//     | "localAccount"
-//     | "hierarchy"
-//     | "roles";
 
 // InitialState
 const initialPageState: PageState = { skip: 0, take: 10 };
@@ -68,7 +58,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
 
     const pageChange = (event: GridPageChangeEvent) => {
         const targetEvent = event.targetEvent as PagerTargetEvent;
-        const take = targetEvent.value === "All" ? 77 : event.page.take;
+        const take = targetEvent.value === "All" ? 50 : event.page.take;
 
         if (targetEvent.value) {
             setPageSizeValue(targetEvent.value);
@@ -107,7 +97,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
             fieldRef.current = selectedField;
             selectedField.scrollIntoView({
                 behavior: "smooth",
-                block: "start",
+                block: "center",
                 inline: "nearest",
             });
             selectedField.classList.add("my-div");

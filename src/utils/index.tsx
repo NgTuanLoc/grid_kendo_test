@@ -1,4 +1,5 @@
-import { IBulkUserGrid } from "../components/BulkUserGrid";
+import * as faker from "@faker-js/faker";
+import { IBulkUserGrid } from "../components/interface";
 
 export const generateDummyData = (count: number): IBulkUserGrid[] => {
     const dummyData: IBulkUserGrid[] = [];
@@ -6,14 +7,14 @@ export const generateDummyData = (count: number): IBulkUserGrid[] => {
     for (let i = 0; i < count; i++) {
         const user: IBulkUserGrid = {
             id: i + 1,
-            email: `user${i + 1}@example.com`,
-            displayName: `User ${i + 1}`,
-            firstName: `First Name ${i + 1}`,
-            lastName: `Last Name ${i + 1}`,
-            licensedSolutions: `Solution ${i + 1}`,
+            email: faker.allFakers.en.internet.email(),
+            displayName: faker.allFakers.en.internet.userName(),
+            firstName: faker.allFakers.en.person.firstName(),
+            lastName: faker.allFakers.en.person.lastName(),
+            licensedSolutions: faker.allFakers.en.commerce.productName(),
             localAccount: i % 2 === 0, // alternate between true and false
-            hierarchy: `Hierarchy ${i + 1}`,
-            roles: `Role ${i + 1}`,
+            hierarchy: faker.allFakers.en.commerce.department(),
+            roles: faker.allFakers.en.person.jobArea(),
         };
 
         dummyData.push(user);

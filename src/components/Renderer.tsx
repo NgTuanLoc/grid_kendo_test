@@ -1,6 +1,6 @@
 import { GridCellProps, GridRowProps } from "@progress/kendo-react-grid";
 import * as React from "react";
-import { IBulkUserGrid } from "./BulkUserGrid";
+import { IBulkUserGrid } from "./interface";
 
 interface CellRenderProps {
     originalProps: GridCellProps;
@@ -49,7 +49,7 @@ export const CellRender = (props: CellRenderProps) => {
                   },
               };
 
-    const clonedProps: any = { ...props.td.props, ...additionalProps };
+    const clonedProps = { ...props.td.props, ...additionalProps };
     return React.cloneElement(
         props.td,
         clonedProps,
