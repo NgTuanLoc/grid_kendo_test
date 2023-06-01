@@ -85,6 +85,7 @@ export const fakeBackendApiCall = async (
     sort?: SortDescriptor | null
 ): Promise<IBulkUserGridResponse> => {
     //Fake delay api
+    await fakeApiCall();
     console.log("API Called");
     const tempData = [...dummyUserData];
 
@@ -131,6 +132,15 @@ export const fakeBackendApiCall = async (
         pageCached,
     };
     return response;
+};
+
+const fakeApiCall = (): Promise<string> => {
+    return new Promise((resolve) => {
+        // Simulate an API call that takes 2 seconds to complete
+        setTimeout(() => {
+            resolve("Fake API response");
+        }, 2000);
+    });
 };
 
 // FE Utils for paging
