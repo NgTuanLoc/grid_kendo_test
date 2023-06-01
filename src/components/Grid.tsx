@@ -1,88 +1,49 @@
-import { useState } from "react";
 import {
     Grid,
     GridColumn,
     GridToolbar,
-    GridItemChangeEvent,
     GridCellProps,
     GridRowProps,
 } from "@progress/kendo-react-grid";
-import { Button } from "@progress/kendo-react-buttons";
+
 import { CellRender, RowRender } from "./Renderer";
-import { IBulkUserGrid } from "./interface";
-import { GridColumnType, useBulkUserGridContext } from "../context";
-import { generateDummyData } from "../utils";
-
-const EDIT_FIELD = "inEdit";
-
-const dummyUserData = generateDummyData(107);
+import { useBulkUserGridContext } from "../context";
+import { AMOUNT_OF_DATA, EDIT_FIELD } from "../constants";
+import { getDataIndexFromPageIndex } from "../utils";
 
 const MyGrid = () => {
-    const { gridRef, navigateCellTo, page, pageChange, pageSizeValue } =
-        useBulkUserGridContext();
-    const [data, setData] = useState<IBulkUserGrid[]>(dummyUserData);
-    const [changes, setChanges] = useState<boolean>(false);
-
-    // Edit
-    const enterEdit = (dataItem: IBulkUserGrid, field: string | undefined) => {
-        const newData = data.map((item) => ({
-            ...item,
-            [EDIT_FIELD]: item.id === dataItem.id ? field : undefined,
-        }));
-
-        setData(newData);
-    };
-
-    const exitEdit = () => {
-        const newData = data.map((item) => ({
-            ...item,
-            [EDIT_FIELD]: undefined,
-        }));
-
-        setData(newData);
-    };
-
-    const saveChanges = () => {
-        // products.splice(0, products.length, ...data);
-        setChanges(false);
-    };
-
-    const cancelChanges = () => {
-        setData(dummyUserData);
-        setChanges(false);
-    };
-
-    const itemChange = (event: GridItemChangeEvent) => {
-        console.log(event.field);
-        const field = event.field as GridColumnType;
-        // const field = event.field || "";
-        event.dataItem[field] = event.value;
-        const newData = data.map((item) => {
-            if (item.id === event.dataItem.id) {
-                if (field === "localAccount") {
-                    item[field] = Boolean(event.value);
-                } else {
-                    item[field] = event.value;
-                }
-            }
-            return item;
-        });
-        setData(newData);
-        setChanges(true);
-    };
+    const {
+        data,
+        changes,
+        gridRef,
+        dataIndex,
+        page,
+        pageChange,
+        pageSizeValue,
+        enterEdit,
+        exitEdit,
+        saveChanges,
+        cancelChanges,
+        itemChange,
+        sort,
+        isLoading,
+        sortChange,
+    } = useBulkUserGridContext();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customCellRender: any = (
         td: React.ReactElement<HTMLTableCellElement>,
         props: GridCellProps
-    ) => (
-        <CellRender
-            originalProps={props}
-            td={td}
-            enterEdit={enterEdit}
-            editField={EDIT_FIELD}
-        />
-    );
+    ) => {
+        return (
+            <CellRender
+                originalProps={props}
+                td={td}
+                enterEdit={enterEdit}
+                editField={EDIT_FIELD}
+            />
+        );
+    };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customRowRender: any = (
         tr: React.ReactElement<HTMLTableRowElement>,
@@ -96,59 +57,34 @@ const MyGrid = () => {
         />
     );
 
+    if (isLoading) {
+        return <h1>Loading</h1>;
+    }
+
     return (
         <div>
-            <div>
-                <span style={{ marginRight: 10 }}>
-                    Scroll to row with index (it is zero based):
-                </span>
-                <Button
-                    style={{ marginRight: 5 }}
-                    onClick={() => navigateCellTo(1)}
-                >
-                    1
-                </Button>
-                <Button
-                    style={{ marginRight: 5 }}
-                    onClick={() => navigateCellTo(5)}
-                >
-                    5
-                </Button>
-                <Button
-                    style={{ marginRight: 5 }}
-                    onClick={() => navigateCellTo(10)}
-                >
-                    10
-                </Button>
-                <Button
-                    style={{ marginRight: 5 }}
-                    onClick={() => navigateCellTo(11)}
-                >
-                    11
-                </Button>
-                <Button
-                    style={{ marginRight: 5 }}
-                    onClick={() => navigateCellTo(20)}
-                >
-                    20
-                </Button>
-                <Button
-                    style={{ marginRight: 5 }}
-                    onClick={() => navigateCellTo(70)}
-                >
-                    70
-                </Button>
-            </div>
-            <br />
             <div ref={gridRef}>
                 <Grid
-                    data={data.slice(page.skip, page.take + page.skip)}
+                    data={
+                        data.data[
+                            getDataIndexFromPageIndex(
+                                dataIndex,
+                                data.pageCached
+                            )
+                        ]
+                    }
                     skip={page.skip}
                     take={page.take}
-                    total={dummyUserData.length}
+                    total={AMOUNT_OF_DATA}
+                    sortable={{
+                        allowUnsort: true,
+                        mode: "single",
+                    }}
+                    sort={sort}
+                    onSortChange={sortChange}
                     pageable={{
-                        buttonCount: 4,
-                        pageSizes: [5, 10, 15, "All"],
+                        buttonCount: 5,
+                        pageSizes: [5, 10, 15],
                         pageSizeValue: pageSizeValue,
                     }}
                     onPageChange={pageChange}
@@ -210,17 +146,23 @@ const MyGrid = () => {
                         width="200px"
                     />
                     <GridColumn
+                        title="Hierarchy"
+                        field="hierarchy"
+                        width="200px"
+                    />
+                    <GridColumn field="roles" title="Roles" width="200px" />
+                    <GridColumn
                         title="Local Account"
                         field="localAccount"
                         width="200px"
                         editor="boolean"
                     />
                     <GridColumn
-                        title="Hierarchy"
-                        field="hierarchy"
+                        title="Active Status"
+                        field="active"
                         width="200px"
+                        editor="boolean"
                     />
-                    <GridColumn field="roles" title="Roles" width="200px" />
                 </Grid>
             </div>
         </div>
