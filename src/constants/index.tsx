@@ -16,6 +16,6 @@ export const COLUMN_INDEX = {
 };
 
 export const PAGINATION_OPTIONS = {
-    PAGE_SIZE: 5,
+    PAGE_SIZE: 10,
     PAGE_CACHED: 5,
 };

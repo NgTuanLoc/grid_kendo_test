@@ -168,19 +168,17 @@ export const findAndUpdateData = (
     updateItem: IBulkUserGrid
 ): IBulkUserGrid[] => {
     const tempUpdatedData: IBulkUserGrid[] = [...updatedData];
-
     const index = tempUpdatedData.findIndex(
         (item) => item.id === updateItem.id
     );
+    console.log(tempUpdatedData);
 
     if (index !== -1) {
         console.log(index);
-        console.log(tempUpdatedData);
         console.log(tempUpdatedData[index]);
+
         tempUpdatedData[index] = updateItem;
     } else {
-        console.log("sdfsdgh");
-
         tempUpdatedData.push(updateItem);
     }
     return tempUpdatedData;

@@ -41,7 +41,10 @@ export type GridColumnType =
     | "roles";
 
 // InitialState
-const initialPageState: PageState = { skip: 0, take: 5 };
+const initialPageState: PageState = {
+    skip: 0,
+    take: PAGINATION_OPTIONS.PAGE_SIZE,
+};
 
 export type IBulkUserGridContent = {
     data: IBulkUserGridResponse;
@@ -313,8 +316,8 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     };
 
     const addItemToUpdateData = (item: IBulkUserGrid) => {
-        const tempData = findAndUpdateData(updatedData, item);
-        setUpdatedData([...saveUpdatedData, ...tempData]);
+        const tempUpdatedData = findAndUpdateData(updatedData, item);
+        setUpdatedData(tempUpdatedData);
     };
 
     const onSubmitHandler = () => {
