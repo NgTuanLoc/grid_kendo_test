@@ -158,7 +158,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     // Handle Filtering
     const [filter, setFilter] = useState<CompositeFilterDescriptor>();
     const [debouncedFilterValue, previousDebouncedFilterValue] =
-        useDebounce<CompositeFilterDescriptor>(filter, 3000);
+        useDebounce<CompositeFilterDescriptor>(filter, 2000);
 
     // On navigate cell handler
     const pageChange = (event: GridPageChangeEvent) => {
@@ -192,10 +192,25 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
         }
 
         if (
-            isSortChange ||
-            (debouncedFilterValue &&
-                debouncedFilterValue !== previousDebouncedFilterValue)
+            debouncedFilterValue !== undefined &&
+            debouncedFilterValue !== previousDebouncedFilterValue
         ) {
+            setIsLoading(true);
+            const newData = await fakeBackendApiCall(
+                pageRangeStartFe,
+                pageSizeValue,
+                data.pageCached,
+                sort[0],
+                debouncedFilterValue
+            );
+            setData({ ...newData, data: updateNewDataToUpdateData(newData) });
+            setPage({
+                ...page,
+                skip: 0,
+            });
+        }
+
+        if (isSortChange) {
             setIsLoading(true);
             const newData = await fakeBackendApiCall(
                 pageRangeStartFe,
