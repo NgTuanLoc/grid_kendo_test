@@ -26,6 +26,7 @@ import {
     CompositeFilterDescriptor,
     SortDescriptor,
 } from "@progress/kendo-data-query";
+import useDebounce from "./hooks";
 
 interface PageState {
     skip: number;
@@ -76,6 +77,7 @@ const AppContext = createContext<IBulkUserGridContent>({
     data: {
         data: [],
         totalPage: 1,
+        totalRecords: 1,
         startPage: 1,
         endPage: 1,
         pageSize: 1,
@@ -155,6 +157,8 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
 
     // Handle Filtering
     const [filter, setFilter] = useState<CompositeFilterDescriptor>();
+    const [debouncedFilterValue, previousDebouncedFilterValue] =
+        useDebounce<CompositeFilterDescriptor>(filter, 3000);
 
     // On navigate cell handler
     const pageChange = (event: GridPageChangeEvent) => {
@@ -187,13 +191,18 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
             setData({ ...newData, data: updateNewDataToUpdateData(newData) });
         }
 
-        if (isSortChange) {
+        if (
+            isSortChange ||
+            (debouncedFilterValue &&
+                debouncedFilterValue !== previousDebouncedFilterValue)
+        ) {
             setIsLoading(true);
             const newData = await fakeBackendApiCall(
                 pageRangeStartFe,
                 pageSizeValue,
                 data.pageCached,
-                sort[0]
+                sort[0],
+                debouncedFilterValue
             );
             setData({ ...newData, data: updateNewDataToUpdateData(newData) });
             setIsSortChange(false);
@@ -205,7 +214,8 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
                 pageRangeStartFe,
                 pageSizeValue,
                 data.pageCached,
-                sort[0]
+                sort[0],
+                debouncedFilterValue
             );
             setData({ ...newData, data: updateNewDataToUpdateData(newData) });
         }
@@ -215,7 +225,8 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
                 pageRangeEndFe,
                 pageSizeValue,
                 data.pageCached,
-                sort[0]
+                sort[0],
+                debouncedFilterValue
             );
             setData({ ...newData, data: updateNewDataToUpdateData(newData) });
         }
@@ -226,7 +237,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     useEffect(() => {
         handleFetchDataAsync();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page.skip, page.take, pageSizeValue, sort, filter?.filters]);
+    }, [page.skip, page.take, pageSizeValue, sort, debouncedFilterValue]);
 
     const updateNewDataToUpdateData = (newData: IBulkUserGridResponse) => {
         // return newData.data;
@@ -313,7 +324,6 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
 
     // Filter
     const filterChange = (event: GridFilterChangeEvent) => {
-        console.log(event);
         setFilter(event.filter);
     };
 

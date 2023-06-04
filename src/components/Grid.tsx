@@ -8,7 +8,7 @@ import {
 
 import { CellRender, RowRender } from "./Renderer";
 import { useBulkUserGridContext } from "../context";
-import { AMOUNT_OF_DATA, EDIT_FIELD } from "../constants";
+import { EDIT_FIELD } from "../constants";
 import { getDataIndexFromPageIndex } from "../utils";
 
 const MyGrid = () => {
@@ -77,7 +77,7 @@ const MyGrid = () => {
                     }
                     skip={page.skip}
                     take={page.take}
-                    total={AMOUNT_OF_DATA}
+                    total={data.totalRecords}
                     sortable={{
                         allowUnsort: true,
                         mode: "single",

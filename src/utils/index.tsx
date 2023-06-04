@@ -122,3 +122,11 @@ export const findAndUpdateData = (
     }
     return tempUpdatedData;
 };
+
+export const calculateNumberOfRecords = (data: IBulkUserGrid[][]) => {
+    let count = 0;
+    for (let i = 0; i < data.length; i++) {
+        count += data[i].length;
+    }
+    return count;
+};

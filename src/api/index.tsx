@@ -18,7 +18,7 @@ export const fakeBackendApiCall = async (
     //Fake delay api
     await fakeApiCall();
     console.log("API Called");
-    const tempData = [...dummyUserData];
+    let tempData = [...dummyUserData];
 
     // Handle Filter
     if (filterParam) {
@@ -26,9 +26,17 @@ export const fakeBackendApiCall = async (
 
         for (let i = 0; i < filters.length; i++) {
             const element = filters[i] as FilterDescriptor;
-            console.log(element);
+
+            if (!element.field) continue;
+
+            const field = element.field as GridColumnType;
+            tempData = tempData.filter((item) =>
+                item[field].includes(element.value)
+            );
         }
     }
+
+    const filterData = tempData;
 
     // Handle Sorting
     if (sort) {
@@ -67,6 +75,7 @@ export const fakeBackendApiCall = async (
     const response: IBulkUserGridResponse = {
         data: responseData,
         totalPage: totalPage,
+        totalRecords: filterData.length,
         startPage: pageRangeStart,
         endPage: pageRangeEnd,
         pageSize,

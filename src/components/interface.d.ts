@@ -32,6 +32,7 @@ export interface columnInterface {
 export interface IBulkUserGridResponse {
     data: IBulkUserGrid[][];
     totalPage: number;
+    totalRecords: number;
     pageSize: number;
     pageCached: number;
     startPage: number;
