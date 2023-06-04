@@ -1,60 +1,70 @@
 import { GridCellProps, GridRowProps } from "@progress/kendo-react-grid";
 import * as React from "react";
 import { IBulkUserGrid } from "./interface";
+import { MyChipList } from "./CustomCells/ChipCell";
 
 interface CellRenderProps {
     originalProps: GridCellProps;
     td: React.ReactElement<HTMLTableCellElement>;
     enterEdit: (dataItem: IBulkUserGrid, field: string | undefined) => void;
-    editField: string | undefined;
+    editField: string;
 }
 
 interface RowRenderProps {
     originalProps: GridRowProps;
     tr: React.ReactElement<HTMLTableRowElement>;
     exitEdit: () => void;
-    editField: string | undefined;
+    editField: string;
 }
 
 export const CellRender = (props: CellRenderProps) => {
-    const dataItem = props.originalProps.dataItem;
-    const cellField = props.originalProps.field;
-    const inEditField = dataItem[props.editField || ""];
-    const additionalProps =
-        cellField && cellField === inEditField
-            ? {
-                  ref: (td: HTMLTableCellElement) => {
-                      const input = td && td.querySelector("input");
-                      const activeElement = document.activeElement;
+    const { originalProps, editField, enterEdit, td } = props;
+    const { dataItem, field } = originalProps;
 
-                      if (
-                          !input ||
-                          !activeElement ||
-                          input === activeElement ||
-                          !activeElement.contains(input)
-                      ) {
-                          return;
-                      }
+    const handleCellClick = () => {
+        enterEdit(dataItem, field);
+    };
 
-                      if (input.type === "checkbox") {
-                          input.focus();
-                      } else {
-                          input.select();
-                      }
-                  },
-              }
-            : {
-                  onClick: () => {
-                      props.enterEdit(dataItem, cellField);
-                  },
-              };
+    const isCellInEdit = dataItem[editField] === field;
+    const additionalProps = isCellInEdit
+        ? { ref: handleRef }
+        : { onClick: handleCellClick };
 
-    const clonedProps = { ...props.td.props, ...additionalProps };
-    return React.cloneElement(
-        props.td,
-        clonedProps,
-        props.td.props.children as React.ReactNode
-    );
+    function handleRef(td: HTMLTableCellElement) {
+        const input = td?.querySelector("input");
+        if (!input) return;
+
+        input.classList.add("selected-cell");
+        const activeElement = document.activeElement;
+
+        if (
+            !activeElement ||
+            input === activeElement ||
+            !activeElement.contains(input)
+        ) {
+            return;
+        }
+
+        if (input.type === "checkbox") {
+            input.focus();
+        } else {
+            input.select();
+        }
+    }
+
+    // If the cell has error message, apply the class
+    // const customClassName = "selected-cell";
+    const customClassName = "";
+
+    if (field === "licensedSolutions" && dataItem) {
+        return <MyChipList data={dataItem} className={customClassName} />;
+    }
+
+    return React.cloneElement(td, {
+        ...td.props,
+        ...additionalProps,
+        className: customClassName,
+    });
 };
 
 export const RowRender = (props: RowRenderProps) => {
@@ -64,9 +74,10 @@ export const RowRender = (props: RowRenderProps) => {
             props.exitEdit();
         },
     };
+
     return React.cloneElement(
         props.tr,
-        { ...trProps },
+        { ...trProps, className: `row__${props.originalProps.dataItem.id}` },
         props.tr.props.children as React.ReactNode
     );
 };

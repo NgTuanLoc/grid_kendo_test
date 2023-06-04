@@ -11,17 +11,21 @@ import {
     GridPageChangeEvent,
     GridItemChangeEvent,
     GridSortChangeEvent,
+    GridFilterChangeEvent,
 } from "@progress/kendo-react-grid";
 
 import {
     calculateStartAndEndPageIndex,
-    fakeBackendApiCall,
     findAndUpdateData,
     getDataIndexFromPageIndex,
 } from "./utils";
+import { fakeBackendApiCall } from "./api";
 import { EDIT_FIELD, PAGINATION_OPTIONS } from "./constants";
 import { IBulkUserGrid, IBulkUserGridResponse } from "./components/interface";
-import { SortDescriptor } from "@progress/kendo-data-query";
+import {
+    CompositeFilterDescriptor,
+    SortDescriptor,
+} from "@progress/kendo-data-query";
 
 interface PageState {
     skip: number;
@@ -55,7 +59,9 @@ export type IBulkUserGridContent = {
     sort: SortDescriptor[];
     dataIndex: number;
     isLoading: boolean;
+    filter: CompositeFilterDescriptor | undefined;
     sortChange: (event: GridSortChangeEvent) => void;
+    filterChange: (event: GridFilterChangeEvent) => void;
     pageChange: (event: GridPageChangeEvent) => void;
     enterEdit: (dataItem: IBulkUserGrid, field: string | undefined) => void;
     exitEdit: () => void;
@@ -82,7 +88,11 @@ const AppContext = createContext<IBulkUserGridContent>({
     pageSizeValue: "All",
     changes: false,
     sort: [],
+    filter: undefined,
     sortChange: (event: GridSortChangeEvent) => {
+        console.log(event);
+    },
+    filterChange: (event: GridFilterChangeEvent) => {
         console.log(event);
     },
     pageChange: (event: GridPageChangeEvent) => {
@@ -131,6 +141,8 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     const [updatedData, setUpdatedData] = useState<IBulkUserGrid[]>([]);
     const [saveUpdatedData, setSaveUpdatedData] = useState<IBulkUserGrid[]>([]);
     const gridRef = useRef<HTMLDivElement>(null);
+
+    // Handle Pagination
     const [page, setPage] = useState(initialPageState);
     const [pageSizeValue, setPageSizeValue] = useState(
         PAGINATION_OPTIONS.PAGE_SIZE
@@ -140,6 +152,9 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     const [isSortChange, setIsSortChange] = useState(false);
     const [changes, setChanges] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Handle Filtering
+    const [filter, setFilter] = useState<CompositeFilterDescriptor>();
 
     // On navigate cell handler
     const pageChange = (event: GridPageChangeEvent) => {
@@ -154,6 +169,10 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     };
 
     const handleFetchDataAsync = async () => {
+        // Refetch data when
+        // 1/ Selected page is exceeded the boundary for cached page
+        // 2/ Sorting
+        // 3/ Change pagesize
         const tempDataIndex = page.skip / page.take;
         const [pageRangeStartFe, pageRangeEndFe] =
             calculateStartAndEndPageIndex(tempDataIndex + 1, data.pageCached);
@@ -207,7 +226,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     useEffect(() => {
         handleFetchDataAsync();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page.skip, page.take, pageSizeValue, sort]);
+    }, [page.skip, page.take, pageSizeValue, sort, filter?.filters]);
 
     const updateNewDataToUpdateData = (newData: IBulkUserGridResponse) => {
         // return newData.data;
@@ -292,6 +311,12 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
         setIsSortChange(true);
     };
 
+    // Filter
+    const filterChange = (event: GridFilterChangeEvent) => {
+        console.log(event);
+        setFilter(event.filter);
+    };
+
     // Other Feature
     const removeSolutionFamilyHandler = (id: number, value: string) => {
         const tempData = data.data[dataIndex].map((item) => {
@@ -344,6 +369,8 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
                 removeSolutionFamilyHandler,
                 onSubmitHandler,
                 sortChange,
+                filter,
+                filterChange,
             }}
         >
             {children}

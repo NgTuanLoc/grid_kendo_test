@@ -28,6 +28,8 @@ const MyGrid = () => {
         sort,
         isLoading,
         sortChange,
+        filter,
+        filterChange,
     } = useBulkUserGridContext();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,7 +83,10 @@ const MyGrid = () => {
                         mode: "single",
                     }}
                     sort={sort}
+                    filter={filter}
+                    filterable={true}
                     onSortChange={sortChange}
+                    onFilterChange={filterChange}
                     pageable={{
                         buttonCount: 5,
                         pageSizes: [5, 10, 15],
@@ -123,6 +128,7 @@ const MyGrid = () => {
                         title="Id"
                         width="50px"
                         editable={false}
+                        filterable={false}
                     />
                     <GridColumn field="email" title="Email" width="200px" />
                     <GridColumn
