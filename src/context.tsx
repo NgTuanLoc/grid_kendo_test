@@ -21,7 +21,12 @@ import {
 } from "./utils";
 import { fakeBackendApiCall } from "./api";
 import { EDIT_FIELD, PAGINATION_OPTIONS } from "./constants";
-import { IBulkUserGrid, IBulkUserGridResponse } from "./components/interface";
+import {
+    IBulkUserGrid,
+    IBulkUserGridResponse,
+    IFileRecordDetail,
+    IUpdateFileRecordDetail,
+} from "./components/interface";
 import {
     CompositeFilterDescriptor,
     SortDescriptor,
@@ -40,10 +45,10 @@ export type GridColumnType =
     | "firstName"
     | "firstName"
     | "lastName"
-    | "licensedSolutions"
-    | "localAccount"
-    | "hierarchy"
-    | "roles";
+    | "fileRecordDetail"
+    | "localAccount";
+
+export type FileRecordDetailType = "addSF" | "removeSF";
 
 // InitialState
 const initialPageState: PageState = {
@@ -69,7 +74,10 @@ export type IBulkUserGridContent = {
     saveChanges: () => void;
     cancelChanges: () => void;
     itemChange: (event: GridItemChangeEvent) => void;
-    removeSolutionFamilyHandler: (id: number, value: string) => void;
+    removeSolutionFamilyHandler: (
+        id: number,
+        value: IUpdateFileRecordDetail
+    ) => void;
     onSubmitHandler: () => void;
 };
 
@@ -116,7 +124,10 @@ const AppContext = createContext<IBulkUserGridContent>({
     itemChange: (event: GridItemChangeEvent) => {
         console.log(event);
     },
-    removeSolutionFamilyHandler: (id: number, value: string) => {
+    removeSolutionFamilyHandler: (
+        id: number,
+        value: IUpdateFileRecordDetail
+    ) => {
         console.log(id);
         console.log(value);
     },
@@ -141,7 +152,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     const [data, setData] = useState<IBulkUserGridResponse>(testData);
     // This data will be send to update api
     const [updatedData, setUpdatedData] = useState<IBulkUserGrid[]>([]);
-    const [saveUpdatedData, setSaveUpdatedData] = useState<IBulkUserGrid[]>([]);
+    const [submitData, setSubmitData] = useState<IBulkUserGrid[]>([]);
     const gridRef = useRef<HTMLDivElement>(null);
 
     // Handle Pagination
@@ -172,7 +183,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
         });
     };
 
-    const handleFetchDataAsync = async () => {
+    const handleFetchAndUpdateDataAsync = async () => {
         // Refetch data when
         // 1/ Selected page is exceeded the boundary for cached page
         // 2/ Sorting
@@ -182,28 +193,14 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
             calculateStartAndEndPageIndex(tempDataIndex + 1, data.pageCached);
 
         if (data.pageSize !== pageSizeValue) {
-            setIsLoading(true);
-            const newData = await fakeBackendApiCall(
-                pageRangeStartFe,
-                pageSizeValue,
-                data.pageCached
-            );
-            setData({ ...newData, data: updateNewDataToUpdateData(newData) });
+            await fetchDataAsync(pageRangeStartFe);
         }
 
         if (
             debouncedFilterValue !== undefined &&
             debouncedFilterValue !== previousDebouncedFilterValue
         ) {
-            setIsLoading(true);
-            const newData = await fakeBackendApiCall(
-                pageRangeStartFe,
-                pageSizeValue,
-                data.pageCached,
-                sort[0],
-                debouncedFilterValue
-            );
-            setData({ ...newData, data: updateNewDataToUpdateData(newData) });
+            await fetchDataAsync(pageRangeStartFe);
             setPage({
                 ...page,
                 skip: 0,
@@ -211,51 +208,38 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
         }
 
         if (isSortChange) {
-            setIsLoading(true);
-            const newData = await fakeBackendApiCall(
-                pageRangeStartFe,
-                pageSizeValue,
-                data.pageCached,
-                sort[0],
-                debouncedFilterValue
-            );
-            setData({ ...newData, data: updateNewDataToUpdateData(newData) });
+            await fetchDataAsync(pageRangeStartFe);
             setIsSortChange(false);
         }
 
         if (tempDataIndex + 1 < data.startPage) {
-            setIsLoading(true);
-            const newData = await fakeBackendApiCall(
-                pageRangeStartFe,
-                pageSizeValue,
-                data.pageCached,
-                sort[0],
-                debouncedFilterValue
-            );
-            setData({ ...newData, data: updateNewDataToUpdateData(newData) });
+            await fetchDataAsync(pageRangeStartFe);
         }
         if (tempDataIndex >= data.endPage) {
-            setIsLoading(true);
-            const newData = await fakeBackendApiCall(
-                pageRangeEndFe,
-                pageSizeValue,
-                data.pageCached,
-                sort[0],
-                debouncedFilterValue
-            );
-            setData({ ...newData, data: updateNewDataToUpdateData(newData) });
+            await fetchDataAsync(pageRangeEndFe);
         }
         setDataIndex(getDataIndexFromPageIndex(tempDataIndex, data.pageCached));
         setIsLoading(false);
     };
 
+    const fetchDataAsync = async (pageIndex: number) => {
+        setIsLoading(true);
+        const newData = await fakeBackendApiCall(
+            pageIndex,
+            pageSizeValue,
+            data.pageCached,
+            sort[0],
+            debouncedFilterValue
+        );
+        setData({ ...newData, data: updateDataHandler(newData) });
+    };
+
     useEffect(() => {
-        handleFetchDataAsync();
+        handleFetchAndUpdateDataAsync();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page.skip, page.take, pageSizeValue, sort, debouncedFilterValue]);
 
-    const updateNewDataToUpdateData = (newData: IBulkUserGridResponse) => {
-        // return newData.data;
+    const updateDataHandler = (newData: IBulkUserGridResponse) => {
         const tempData = newData.data.map((userList) => {
             return userList.map((user) => {
                 const temp = updatedData.find((item) => item.id === user.id);
@@ -278,9 +262,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
             };
         });
 
-        const newData = [...data.data];
-        newData[dataIndex] = tempData;
-        setData({ ...data, data: newData });
+        changeDataHandler(tempData);
     };
 
     const exitEdit = () => {
@@ -289,14 +271,12 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
             [EDIT_FIELD]: undefined,
         }));
 
-        const newData = [...data.data];
-        newData[dataIndex] = tempData;
-        setData({ ...data, data: newData });
+        changeDataHandler(tempData);
     };
 
     const saveChanges = () => {
         setOriginalData(data);
-        setSaveUpdatedData(updatedData);
+        setSubmitData(updatedData);
         setChanges(false);
     };
 
@@ -306,7 +286,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
             skip: 0,
         });
         setData(originalData);
-        setUpdatedData([...saveUpdatedData]);
+        setUpdatedData([...submitData]);
         setChanges(false);
     };
 
@@ -325,10 +305,14 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
             return item;
         });
 
-        const newData = [...data.data];
-        newData[dataIndex] = tempData;
-        setData({ ...data, data: newData });
+        changeDataHandler(tempData);
         setChanges(true);
+    };
+
+    const changeDataHandler = (changeData: IBulkUserGrid[]) => {
+        const newData = [...data.data];
+        newData[dataIndex] = changeData;
+        setData({ ...data, data: newData });
     };
 
     // Sort
@@ -343,15 +327,20 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     };
 
     // Other Feature
-    const removeSolutionFamilyHandler = (id: number, value: string) => {
+    const removeSolutionFamilyHandler = (
+        id: number,
+        value: IUpdateFileRecordDetail
+    ) => {
         const tempData = data.data[dataIndex].map((item) => {
             if (item.id === id) {
-                const filteredCustomField = item.licensedSolutions.filter(
-                    (field) => field !== value
+                const updatedFileRecordDetail = updateFileRecordDetailList(
+                    item.fileRecordDetail,
+                    value
                 );
+
                 const newItem = {
                     ...item,
-                    licensedSolutions: filteredCustomField,
+                    fileRecordDetail: updatedFileRecordDetail,
                 };
                 addItemToUpdateData(newItem);
                 return newItem;
@@ -359,10 +348,24 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
             return item;
         });
 
-        const newData = [...data.data];
-        newData[dataIndex] = tempData;
-        setData({ ...data, data: newData });
+        changeDataHandler(tempData);
         setChanges(true);
+    };
+
+    const updateFileRecordDetailList = (
+        fileRecordDetailList: IFileRecordDetail[],
+        value: IUpdateFileRecordDetail
+    ) => {
+        const updatedFileRecordDetail = fileRecordDetailList.map((frd) => {
+            if (frd.id === value.id) {
+                const field = value.field as FileRecordDetailType;
+                frd[field] = null;
+                return { ...frd, isUpdated: true };
+            }
+            return { ...frd };
+        });
+
+        return updatedFileRecordDetail;
     };
 
     const addItemToUpdateData = (item: IBulkUserGrid) => {
@@ -371,7 +374,7 @@ const BulkUserGridProvider = ({ children }: IBulkUserGridProvider) => {
     };
 
     const onSubmitHandler = () => {
-        console.log(saveUpdatedData);
+        console.log(submitData);
     };
 
     return (

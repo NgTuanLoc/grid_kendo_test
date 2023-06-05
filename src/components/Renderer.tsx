@@ -1,7 +1,7 @@
 import { GridCellProps, GridRowProps } from "@progress/kendo-react-grid";
 import * as React from "react";
-import { IBulkUserGrid } from "./interface";
-import { MyChipList } from "./CustomCells/ChipCell";
+import { IBulkUserGrid, IFileRecordDetail } from "./interface";
+import { MyChipListTest } from "./CustomCells/ChipCell";
 
 interface CellRenderProps {
     originalProps: GridCellProps;
@@ -56,8 +56,35 @@ export const CellRender = (props: CellRenderProps) => {
     // const customClassName = "selected-cell";
     const customClassName = "";
 
-    if (field === "licensedSolutions" && dataItem) {
-        return <MyChipList data={dataItem} className={customClassName} />;
+    const fileRecordDetail = dataItem.fileRecordDetail as IFileRecordDetail[];
+
+    if (field === "fileRecordDetail.AddSF" && dataItem) {
+        const addSF = fileRecordDetail
+            .filter((item) => item.addSF !== null)
+            .map((item) => {
+                return {
+                    id: item.id,
+                    fileRecordId: item.fileRecordId,
+                    field: "addSF",
+                    value: item.addSF as string,
+                };
+            });
+        return <MyChipListTest data={addSF} className={customClassName} />;
+    }
+
+    if (field === "fileRecordDetail.RemoveSF" && dataItem) {
+        const addSF = fileRecordDetail
+            .filter((item) => item.removeSF !== null)
+            .map((item) => {
+                return {
+                    id: item.id,
+                    fileRecordId: item.fileRecordId,
+                    field: "removeSF",
+                    value: item.removeSF as string,
+                };
+            });
+        // console.log(addSF);
+        return <MyChipListTest data={addSF} className={customClassName} />;
     }
 
     return React.cloneElement(td, {

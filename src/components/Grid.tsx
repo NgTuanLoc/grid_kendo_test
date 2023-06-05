@@ -147,16 +147,17 @@ const MyGrid = () => {
                         width="200px"
                     />
                     <GridColumn
-                        field="licensedSolutions"
-                        title="Licensed Solutions"
+                        title="Add Licensed Solutions"
+                        field="fileRecordDetail.AddSF"
                         width="200px"
+                        editor="boolean"
                     />
                     <GridColumn
-                        title="Hierarchy"
-                        field="hierarchy"
+                        title="Remove Licensed Solutions"
+                        field="fileRecordDetail.RemoveSF"
                         width="200px"
+                        editor="boolean"
                     />
-                    <GridColumn field="roles" title="Roles" width="200px" />
                     <GridColumn
                         title="Local Account"
                         field="localAccount"

@@ -1,20 +1,28 @@
-import { SortDescriptor, orderBy } from "@progress/kendo-data-query";
-import { IBulkUserGrid } from "../components/interface";
+import {
+    IBulkUserGrid,
+    IFileRecordDetail,
+    IUpdateFileRecordDetail,
+} from "../components/interface";
 import { AMOUNT_OF_DATA } from "../constants";
 
 export const generateDummyDataOld = (count: number): IBulkUserGrid[] => {
     const dummyData: IBulkUserGrid[] = [];
 
     for (let i = 0; i < count; i++) {
+        const fileRecordId = i + 1;
+        const fileRecordDetailLength = Math.floor(Math.random() * 10) + 1; // Random length between 1 and 5
+        const fileRecordDetail: IFileRecordDetail[] = generateFileRecordDetail(
+            fileRecordDetailLength,
+            fileRecordId
+        );
+
         const user: IBulkUserGrid = {
-            id: i + 1,
+            id: fileRecordId,
             email: `user${i + 1}@example.com`,
             displayName: `User ${i + 1}`,
             firstName: `First Name ${i + 1}`,
             lastName: `Last Name ${i + 1}`,
-            licensedSolutions: generateRandomStringArray(getRandomNumber(3, 5)),
-            hierarchy: `Hierarchy ${i + 1}`,
-            roles: `Role ${i + 1}`,
+            fileRecordDetail: fileRecordDetail,
             localAccount: i % 2 === 0, // alternate between true and false
             active: i % 2 === 0, // alternate between true and false
             inEdit: undefined,
@@ -26,26 +34,46 @@ export const generateDummyDataOld = (count: number): IBulkUserGrid[] => {
     return dummyData;
 };
 
+function generateFileRecordDetail(
+    length: number,
+    fileRecordId: number
+): IFileRecordDetail[] {
+    const fileRecordDetail: IFileRecordDetail[] = [];
+
+    for (let i = 1; i <= length; i++) {
+        const randomRemoveSFValue =
+            Math.random() < 0.5 ? null : generateRandomString();
+        const randomAddSFValue =
+            Math.random() < 0.5 ? null : generateRandomString();
+        const record: IFileRecordDetail = {
+            id: generateRandomString(),
+            fileRecordId: fileRecordId,
+            hierarchy: `Hierarchy ${i + 1}`,
+            roles: `Role ${i + 1}`,
+            addSF: randomAddSFValue,
+            removeSF: randomRemoveSFValue,
+        };
+
+        fileRecordDetail.push(record);
+    }
+
+    return fileRecordDetail;
+}
+
 export const getRandomNumber = (min: number, max: number): number => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-function generateRandomStringArray(length: number): string[] {
+const generateRandomString = () => {
     const chars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const result: string[] = [];
-
-    for (let i = 0; i < length; i++) {
-        let randomString = "";
-        for (let j = 0; j < 10; j++) {
-            const randomIndex = Math.floor(Math.random() * chars.length);
-            randomString += chars.charAt(randomIndex);
-        }
-        result.push(randomString);
+    let randomString = "";
+    for (let j = 0; j < 10; j++) {
+        const randomIndex = Math.floor(Math.random() * chars.length);
+        randomString += chars.charAt(randomIndex);
     }
-
-    return result;
-}
+    return randomString;
+};
 
 export const convertToChipValue = (data: string[]) => {
     if (!data) return [{ text: "text", value: "value" }];
@@ -58,20 +86,17 @@ export const convertToChipValue = (data: string[]) => {
     });
 };
 
-export const getSortedData = (
-    data: IBulkUserGrid[],
-    sort: SortDescriptor[]
-): IBulkUserGrid[] => {
-    const copyData = [...data];
-    if (sort.length && sort[0].field === "licensedSolutions") {
-        const ascendingOrder = sort[0].dir;
-        return copyData.sort((a, b) => {
-            const result =
-                a.licensedSolutions.length - b.licensedSolutions.length;
-            return ascendingOrder === "asc" ? result : -result;
-        });
-    }
-    return orderBy(data, sort);
+export const convertToChipValueForFileRecordDetail = (
+    data: IUpdateFileRecordDetail[]
+) => {
+    if (!data) return [{ text: "text", value: "value" }];
+
+    return data.map((item) => {
+        return {
+            text: item.value,
+            value: item,
+        };
+    });
 };
 
 export const dummyUserData = generateDummyDataOld(AMOUNT_OF_DATA);

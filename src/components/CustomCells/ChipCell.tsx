@@ -4,23 +4,23 @@ import {
     ChipProps,
     ChipRemoveEvent,
 } from "@progress/kendo-react-buttons";
-import { IBulkUserGrid } from "../interface";
-import { convertToChipValue } from "../../utils";
+import { IUpdateFileRecordDetail } from "../interface";
+import { convertToChipValueForFileRecordDetail } from "../../utils";
 import { useBulkUserGridContext } from "../../context";
 
 interface IMyChipList {
-    data: IBulkUserGrid;
+    data: IUpdateFileRecordDetail[];
     className?: string;
 }
 
-export const MyChipList = ({ data, className }: IMyChipList) => {
+export const MyChipListTest = ({ data, className }: IMyChipList) => {
     const { removeSolutionFamilyHandler } = useBulkUserGridContext();
     const onRemoveHandler = (event: ChipRemoveEvent) => {
         const value = event.target.props.value;
-        removeSolutionFamilyHandler(data.id, value);
+        removeSolutionFamilyHandler(value.fileRecordId, value);
     };
 
-    const chipValue = convertToChipValue(data?.licensedSolutions);
+    const chipValue = convertToChipValueForFileRecordDetail(data);
 
     return (
         <td className={className}>
@@ -30,7 +30,7 @@ export const MyChipList = ({ data, className }: IMyChipList) => {
                 chip={(props: ChipProps) => (
                     <Chip
                         onRemove={onRemoveHandler}
-                        removable={chipValue.length !== 1}
+                        removable={chipValue.length > 1}
                         {...props}
                     />
                 )}

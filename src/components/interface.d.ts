@@ -4,12 +4,27 @@ export interface IBulkUserGrid {
     displayName: string;
     firstName: string;
     lastName: string;
-    licensedSolutions: string[];
-    hierarchy: string;
-    roles: string;
     localAccount: boolean;
     active: boolean;
     inEdit: string | undefined;
+    fileRecordDetail: IFileRecordDetail[];
+}
+
+export interface IFileRecordDetail {
+    id: string;
+    fileRecordId: int;
+    hierarchy: string;
+    roles: string;
+    addSF: string | null;
+    removeSF: string | null;
+    isUpdated?: boolean;
+}
+
+export interface IUpdateFileRecordDetail {
+    id: string;
+    fileRecordId: int;
+    value: string;
+    field: string;
 }
 
 export interface columnInterface {
@@ -37,4 +52,21 @@ export interface IBulkUserGridResponse {
     pageCached: number;
     startPage: number;
     endPage: number;
+}
+
+export interface IBulkUserGridFinal {
+    id: string;
+    email: string;
+    displayName: string;
+    firstName: string;
+    lastName: string;
+    addLicensedSolutions: string[];
+    removeLicensedSolutions: string[];
+    // ???
+    hierarchy: string;
+    roles: string;
+    // ???
+    localAccount: boolean;
+    active: boolean; // Sphera Cloud Status
+    inEdit: string | undefined;
 }

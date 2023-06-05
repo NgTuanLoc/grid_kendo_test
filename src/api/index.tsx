@@ -26,7 +26,6 @@ export const fakeBackendApiCall = async (
 
         for (let i = 0; i < filters.length; i++) {
             const element = filters[i] as FilterDescriptor;
-
             if (!element.field) continue;
 
             const field = element.field as GridColumnType;
@@ -46,9 +45,9 @@ export const fakeBackendApiCall = async (
             const valueA = a[field];
             const valueB = b[field];
 
-            if (field === "licensedSolutions") {
-                return dir * (valueA.length - valueB.length);
-            }
+            // if (field === "licensedSolutions") {
+            //     return dir * (valueA.length - valueB.length);
+            // }
 
             return (
                 dir * valueA.toLowerCase().localeCompare(valueB.toLowerCase())
